@@ -4,9 +4,14 @@
 
 = Petail
 
+Petail is a portmanteau (i.e. `[p]roblem + d[etail] = petail`) that implements link:https://datatracker.ietf.org/doc/html/rfc7807[RFC 7807: Problem Details for HTTP APIs]. This allows you to produce HTTP error responses that are structured, machine readable, and consistent.
+
 toc::[]
 
 == Features
+
+* Provides JSON and XML serialization and deserialization.
+* Provides HTTP header and media type support.
 
 == Requirements
 
@@ -45,6 +50,277 @@ require "petail"
 ----
 
 == Usage
+
+The quickest way to get started is to create a new instance and then cast as JSON or XML:
+
+[source,ruby]
+----
+payload = Petail.new type: "https://demo.io/problem_details/timeout",
+                     status: 413,
+                     detail: "You've exceeded the 5MB upload limit.",
+                     instance: "/profile/3a1bfd54-ae6c-4a61-8d0d-90c132428dc3"
+
+payload.to_json
+
+# {
+#   "type": "https://demo.io/problem_details/timeout",
+#   "title": "Content Too Large",
+#   "status": 413,
+#   "detail": "You've exceeded the 5MB upload limit.",
+#   "instance": "/profile/3a1bfd54-ae6c-4a61-8d0d-90c132428dc3"
+# }
+
+payload.to_xml
+
+# <?xml version='1.0' encoding='UTF-8'?>
+# <problem xmlns='urn:ietf:rfc:7807'>
+#   <type>https://demo.io/problem_details/timeout</type>
+#   <title>Content Too Large</title>
+#   <status>413</status>
+#   <detail>You&apos;ve exceeded the 5MB upload limit.</detail>
+#   <instance>/profile/3a1bfd54-ae6c-4a61-8d0d-90c132428dc3</instance>
+# </problem>
+----
+
+=== Media Types
+
+For convenience, you can obtain the necessary media types for your HTTP headers as follows:
+
+[source,ruby]
+----
+Petail::MEDIA_TYPE_JSON  # "application/problem+json"
+Petail::MEDIA_TYPE_XML   # "application/problem+xml"
+
+Petail.media_type_for :json  # "application/problem+json"
+Petail.media_type_for :xml   # "application/problem+xml"
+----
+
+=== Payload
+
+You'll always get a `Petail::Payload` object answered back when using `Petail.new` for which you can cast to JSON, XML, and other types. There are few conveniences provided for you when constructing a new payload. For instance, you can also use status to set default title:
+
+[source,ruby]
+----
+Petail.new status: 413
+# #<Struct:Petail::Payload:0x0000ec80
+#   detail = nil,
+#   extensions = {},
+#   instance = nil,
+#   status = 413,
+#   title = "Content Too Large",
+#   type = "about:blank"
+# >
+----
+
+Notice that standard HTTP 413 title of "Content Too Large" is provided for you but only if you don't supply a title. This works for symbols too. Example:
+
+[source,ruby]
+----
+Petail.new status: :bad_request
+# #<Struct:Petail::Payload:0x0000f280
+#   detail = nil,
+#   extensions = {},
+#   instance = nil,
+#   status = 400,
+#   title = "Bad Request",
+#   type = "about:blank"
+# >
+----
+
+This is similar to the above, but notice the status is cast to an integer while the title is also populated for you. Using either an integer or symbol for the HTTP status is handy for situations where you don't need a custom title and prefer the default HTTP title.
+
+Due to the payload being a `Struct`, you have all of the standard methods available to you. One thing to note is that the payload is frozen by default so you can't mutate attributes. That said, you can still add or check for extensions after the fact. Example:
+
+[source,]
+----
+payload = Petail.new status: :forbidden
+
+payload.add_extension(:account, "/accounts/1")
+       .add_extension(:balance, 50)
+
+# #<Struct:Petail::Payload:0x000122c0
+#   detail = nil,
+#   extensions = {
+#     :account => "/accounts/1",
+#     :balance => 50
+#   },
+#   instance = nil,
+#   status = 403,
+#   title = "Forbidden",
+#   type = "about:blank"
+# >
+----
+
+Given the above, you can also check if an extension exists:
+
+[source,ruby]
+----
+payload.extension? :account  # true
+payload.extension? :bogus    # false
+----
+
+=== JSON
+
+Both serialization and deserialization of JSON is supported. For example, given the following payload:
+
+[source,ruby]
+----
+payload = Petail.new(
+  type: "https://test.io/problem_details/out_of_credit",
+  title: "You do not have enough credit.",
+  status: 403,
+  detail: "Your current balance is 30, but that costs 50.",
+  instance: "/accounts/1",
+  extensions: {
+    balance: 30,
+    accounts: %w[/accounts/1 /accounts/10]
+  }
+)
+----
+
+This means you can serialize as follows:
+
+[source,ruby]
+----
+payload.to_json
+# {"type":"https://test.io/problem_details/out_of_credit","title":"You do not have enough credit.","status":403,"detail":"Your current balance is 30, but that costs 50.","instance":"/accounts/1","extensions":{"balance":30,"accounts":["/accounts/1","/accounts/10"]}}
+
+payload.to_json indent: "  ", space: " ", object_nl: "\n", array_nl: "\n"
+# {
+#   "type": "https://test.io/problem_details/out_of_credit",
+#   "title": "You do not have enough credit.",
+#   "status": 403,
+#   "detail": "Your current balance is 30, but that costs 50.",
+#   "instance": "/accounts/1",
+#   "extensions": {
+#     "balance": 30,
+#     "accounts": [
+#       "/accounts/1",
+#       "/accounts/10"
+#     ]
+#   }
+# }
+----
+
+💡 All of the link:https://docs.ruby-lang.org/en/master/JSON.html#module-JSON-label-Output+Options[JSON] output options are available to you when casting to JSON.
+
+You can also deserialize by taking the result of the above and turning the raw JSON back into a `Petail::Payload`:
+
+[source,ruby]
+----
+Petail.from_json "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"extensions\":{\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}}"
+
+# #<Struct:Petail::Payload:0x00007670
+#   detail = "Your current balance is 30, but that costs 50.",
+#   extensions = {
+#      :balance => 30,
+#     :accounts => [
+#       "/accounts/1",
+#       "/accounts/10"
+#     ]
+#   },
+#   instance = "/accounts/1",
+#   status = 403,
+#   title = "You do not have enough credit.",
+#   type = "https://test.io/problem_details/out_of_credit"
+# >
+----
+
+=== XML
+
+XML is supported too but isn't as robust as JSON support, at the moment. This is mostly due to the fact that extensions can be deeply nested so your mileage may vary. For example, given the following payload:
+
+[source,ruby]
+----
+payload = Petail.new(
+  type: "https://test.io/problem_details/out_of_credit",
+  title: "You do not have enough credit.",
+  status: 403,
+  detail: "Your current balance is 30, but that costs 50.",
+  instance: "/accounts/1",
+  extensions: {
+    balance: 30,
+    accounts: %w[/accounts/1 /accounts/10]
+  }
+)
+----
+
+This means you can serialize as follows:
+
+[source,ruby]
+----
+payload.to_xml
+# "<?xml version='1.0' encoding='UTF-8'?><problem xmlns='urn:ietf:rfc:7807'><type>https://test.io/problem_details/out_of_credit</type><title>You do not have enough credit.</title><status>403</status><detail>Your current balance is 30, but that costs 50.</detail><instance>/accounts/1</instance><balance>30</balance><accounts><i>/accounts/1</i><i>/accounts/10</i></accounts></problem>"
+
+payload.to_xml indent: 2
+# <?xml version='1.0' encoding='UTF-8'?>
+# <problem xmlns='urn:ietf:rfc:7807'>
+#   <type>
+#     https://test.io/problem_details/out_of_credit
+#   </type>
+#   <title>
+#     You do not have enough credit.
+#   </title>
+#   <status>
+#     403
+#   </status>
+#   <detail>
+#     Your current balance is 30, but that costs 50.
+#   </detail>
+#   <instance>
+#     /accounts/1
+#   </instance>
+#   <balance>
+#     30
+#   </balance>
+#   <accounts>
+#     <i>
+#       /accounts/1
+#     </i>
+#     <i>
+#       /accounts/10
+#     </i>
+#   </accounts>
+# </problem>
+----
+
+💡 All of the link:https://ruby.github.io/rexml/REXML/Document.html#method-i-write[REXML::Document.write] output options are available to you when casting to XML.
+
+You can also deserialize by taking the result of the above and turning the raw JSON back into a `Petail::Payload`:
+
+[source,ruby]
+----
+payload = Petail.from_xml <<~XML
+  <?xml version='1.0' encoding='UTF-8'?>
+  <problem xmlns='urn:ietf:rfc:7807'>
+    <type>https://test.io/problem_details/out_of_credit</type>
+    <title>You do not have enough credit.</title>
+    <status>403</status>
+    <detail>Your current balance is 30, but that costs 50.</detail>
+    <instance>/accounts/1</instance>
+    <balance>30</balance>
+    <accounts>
+      <i>/accounts/1</i>
+      <i>/accounts/10</i>
+    </accounts>
+  </problem>
+XML
+
+# #<Struct:Petail::Payload:0x00007670
+#   detail = "Your current balance is 30, but that costs 50.",
+#   extensions = {
+#      :balance => "30",
+#     :accounts => [
+#       "/accounts/1",
+#       "/accounts/10"
+#     ]
+#   },
+#   instance = "/accounts/1",
+#   status = 403,
+#   title = "You do not have enough credit.",
+#   type = "https://test.io/problem_details/out_of_credit"
+# >
+----
 
 == Development
 
