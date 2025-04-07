@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.authors = ["Brooke Kuhlmann"]
   spec.email = ["brooke@alchemists.io"]
   spec.homepage = "https://alchemists.io/projects/petail"
-  spec.summary = "A RFC 7807 Problem Details for HTTP APIs implementation."
+  spec.summary = "A RFC 9457 Problem Details for HTTP APIs implementation."
   spec.license = "Hippocratic-2.1"
 
   spec.metadata = {
