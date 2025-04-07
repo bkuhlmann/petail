@@ -4,7 +4,7 @@
 
 = Petail
 
-Petail is a portmanteau (i.e. `[p]roblem + d[etail] = petail`) that implements link:https://datatracker.ietf.org/doc/html/rfc7807[RFC 7807: Problem Details for HTTP APIs]. This allows you to produce HTTP error responses that are structured, machine readable, and consistent.
+Petail is a portmanteau (i.e. `[p]roblem + d[etail] = petail`) that implements link:https://www.rfc-editor.org/rfc/rfc9457[RFC 9457: Problem Details for HTTP APIs]. This allows you to produce HTTP error responses that are structured, machine readable, and consistent.
 
 toc::[]
 
