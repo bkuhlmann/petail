@@ -19,21 +19,9 @@ RSpec.describe Petail do
     }
   end
 
-  describe ".media_type_for" do
-    it "answers JSON when given JSON" do
-      expect(petail.media_type_for(:json)).to eq("application/problem+json")
-    end
-
-    it "answers XML when given XML" do
-      expect(petail.media_type_for(:xml)).to eq("application/problem+xml")
-    end
-
-    it "answers empty string when unknown" do
-      expect(petail.media_type_for(:bogus)).to eq("")
-    end
-
-    it "answers empty string when nil" do
-      expect(petail.media_type_for(nil)).to eq("")
+  describe ".[]" do
+    it "answers payload" do
+      expect(petail[**attributes]).to eq(described_class::Payload[**attributes])
     end
   end
 
@@ -101,6 +89,24 @@ RSpec.describe Petail do
           }
         ]
       )
+    end
+  end
+
+  describe ".media_type_for" do
+    it "answers JSON when given JSON" do
+      expect(petail.media_type_for(:json)).to eq("application/problem+json")
+    end
+
+    it "answers XML when given XML" do
+      expect(petail.media_type_for(:xml)).to eq("application/problem+xml")
+    end
+
+    it "answers empty string when unknown" do
+      expect(petail.media_type_for(:bogus)).to eq("")
+    end
+
+    it "answers empty string when nil" do
+      expect(petail.media_type_for(nil)).to eq("")
     end
   end
 end
