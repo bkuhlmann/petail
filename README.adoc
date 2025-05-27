@@ -55,10 +55,12 @@ The quickest way to get started is to create a new instance and then cast as JSO
 
 [source,ruby]
 ----
-payload = Petail.new type: "https://demo.io/problem_details/timeout",
-                     status: 413,
-                     detail: "You've exceeded the 5MB upload limit.",
-                     instance: "/profile/3a1bfd54-ae6c-4a61-8d0d-90c132428dc3"
+payload = Petail[
+  type: "https://demo.io/problem_details/timeout",
+  status: 413,
+  detail: "You've exceeded the 5MB upload limit.",
+  instance: "/profile/3a1bfd54-ae6c-4a61-8d0d-90c132428dc3"
+]
 
 payload.to_json
 
@@ -82,6 +84,8 @@ payload.to_xml
 # </problem>
 ----
 
+💡 You can also use `Petail.new` to create instances if you don't like `Petail.[]`, as shown above, but `.[]` is preferred.
+
 === Media Types
 
 For convenience, you can obtain the necessary media types for your HTTP headers as follows:
@@ -97,11 +101,11 @@ Petail.media_type_for :xml   # "application/problem+xml"
 
 === Payload
 
-You'll always get a `Petail::Payload` object answered back when using `Petail.new` for which you can cast to JSON, XML, and other types. There are few conveniences provided for you when constructing a new payload. For instance, you can also use status to set default title:
+You'll always get a `Petail::Payload` object answered back when using `Petail.[]` or `Petail.new` for which you can cast to JSON, XML, and other types. There are few conveniences provided for you when constructing a new payload. For instance, you can also use status to set default title:
 
 [source,ruby]
 ----
-Petail.new status: 413
+Petail[status: 413]
 # #<Struct:Petail::Payload:0x0000ec80
 #   detail = nil,
 #   extensions = {},
@@ -116,7 +120,7 @@ Notice that standard HTTP 413 title of "Content Too Large" is provided for you b
 
 [source,ruby]
 ----
-Petail.new status: :bad_request
+Petail[status: :bad_request]
 # #<Struct:Petail::Payload:0x0000f280
 #   detail = nil,
 #   extensions = {},
@@ -133,7 +137,7 @@ Due to the payload being a `Struct`, you have all of the standard methods availa
 
 [source,]
 ----
-payload = Petail.new status: :forbidden
+payload = Petail[status: :forbidden]
 
 payload.add_extension(:account, "/accounts/1")
        .add_extension(:balance, 50)
@@ -165,7 +169,7 @@ Both serialization and deserialization of JSON is supported. For example, given 
 
 [source,ruby]
 ----
-payload = Petail.new(
+payload = Petail[
   type: "https://test.io/problem_details/out_of_credit",
   title: "You do not have enough credit.",
   status: 403,
@@ -175,7 +179,7 @@ payload = Petail.new(
     balance: 30,
     accounts: %w[/accounts/1 /accounts/10]
   }
-)
+]
 ----
 
 This means you can serialize as follows:
@@ -232,7 +236,7 @@ XML is supported too but isn't as robust as JSON support, at the moment. This is
 
 [source,ruby]
 ----
-payload = Petail.new(
+payload = Petail[
   type: "https://test.io/problem_details/out_of_credit",
   title: "You do not have enough credit.",
   status: 403,
@@ -242,7 +246,7 @@ payload = Petail.new(
     balance: 30,
     accounts: %w[/accounts/1 /accounts/10]
   }
-)
+]
 ----
 
 This means you can serialize as follows:
