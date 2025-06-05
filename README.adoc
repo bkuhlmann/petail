@@ -86,6 +86,17 @@ payload.to_xml
 
 💡 You can also use `Petail.new` to create instances if you don't like `Petail.[]`, as shown above, but `.[]` is preferred.
 
+=== Members
+
+As briefly shown above, the minimum members (attributes) that make up problem details are:
+
+* `type` (optional): The full (or relative) URI that links to additional documentation. Default: `"about:blank"`.
+* `status` (optional): The link:https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status[HTTP status code] (or symbol) that must match your HTTP status code. Default: `nil`.
+* `title` (optional): The HTTP status label that must match your HTTP status code label. Default: HTTP status label (dynamically computed based on code unless overwritten).
+* `detail` (optional): The human readable reason for the error (should not include debugging information). Default: `nil`.
+* `instance` (optional): The full (or relative) URI that represents the cause of the error. Default: `nil`.
+* `extensions` (optional): A free form hash of additional details. Default: `{}`.
+
 === Media Types
 
 For convenience, you can obtain the necessary media types for your HTTP headers as follows:
@@ -352,6 +363,13 @@ To test, run:
 ----
 bin/rake
 ----
+
+== Resources
+
+You can find additional resources here:
+
+* link:https://www.iana.org/assignments/http-problem-types/http-problem-types.xhtml[IANA Hypertext Transfer Protocol (HTTP) Problem Types]: A registered list of problem types you can use.
+* link:https://github.com/protocol-registries/http-problem-types[HTTP Problem Type Registration Requests]: Where you can register new problem types.
 
 == link:https://alchemists.io/policies/license[License]
 
