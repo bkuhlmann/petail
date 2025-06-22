@@ -5,8 +5,10 @@ require "rack/utils"
 require "rexml"
 
 module Petail
+  PRIMARY_KEYS = %i[type title status detail instance].freeze
+
   # Models the problem details response payload.
-  Payload = Struct.new :type, :title, :status, :detail, :instance, :extensions do
+  Payload = Struct.new(*PRIMARY_KEYS, :extensions) do
     def self.for(**attributes)
       status = attributes.delete(:status).then { Rack::Utils.status_code it if it }
       title = attributes.delete(:title).then { it || Rack::Utils::HTTP_STATUS_CODES[status] }
@@ -21,11 +23,11 @@ module Petail
       elements = REXML::Document.new(body).root.elements
 
       attributes = elements.each_with_object({extensions: {}}) do |element, collection|
-        name = element.name
+        name = element.name.to_sym
         text = element.text
 
         case name
-          when "type", "title", "detail", "instance", "status" then collection[name.to_sym] = text
+          when *PRIMARY_KEYS then collection[name] = text
           else collection[:extensions].merge! deserializer.call(element)
         end
       end
