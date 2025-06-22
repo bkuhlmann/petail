@@ -198,7 +198,7 @@ This means you can serialize as follows:
 [source,ruby]
 ----
 payload.to_json
-# {"type":"https://test.io/problem_details/out_of_credit","title":"You do not have enough credit.","status":403,"detail":"Your current balance is 30, but that costs 50.","instance":"/accounts/1","extensions":{"balance":30,"accounts":["/accounts/1","/accounts/10"]}}
+# "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
 
 payload.to_json indent: "  ", space: " ", object_nl: "\n", array_nl: "\n"
 # {
@@ -207,13 +207,11 @@ payload.to_json indent: "  ", space: " ", object_nl: "\n", array_nl: "\n"
 #   "status": 403,
 #   "detail": "Your current balance is 30, but that costs 50.",
 #   "instance": "/accounts/1",
-#   "extensions": {
-#     "balance": 30,
-#     "accounts": [
-#       "/accounts/1",
-#       "/accounts/10"
-#     ]
-#   }
+#   "balance": 30,
+#   "accounts": [
+#     "/accounts/1",
+#     "/accounts/10"
+#   ]
 # }
 ----
 
@@ -223,7 +221,7 @@ You can also deserialize by taking the result of the above and turning the raw J
 
 [source,ruby]
 ----
-Petail.from_json "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"extensions\":{\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}}"
+Petail.from_json "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
 
 # #<Struct:Petail::Payload:0x00007670
 #   detail = "Your current balance is 30, but that costs 50.",
