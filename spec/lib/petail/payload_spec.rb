@@ -51,13 +51,11 @@ RSpec.describe Petail::Payload do
           "status": 403,
           "detail": "Your current balance is 30, but that costs 50.",
           "instance": "/accounts/1",
-          "extensions": {
-            "balance": 30,
-            "accounts": [
-              "/accounts/1",
-              "/accounts/10"
-            ]
-          }
+          "balance": 30,
+          "accounts": [
+            "/accounts/1",
+            "/accounts/10"
+          ]
         }
       JSON
     end
@@ -134,10 +132,8 @@ RSpec.describe Petail::Payload do
         status: 403,
         detail: "Your current balance is 30, but that costs 50.",
         instance: "/accounts/1",
-        extensions: {
-          balance: 30,
-          accounts: %w[/accounts/1 /accounts/10]
-        }
+        balance: 30,
+        accounts: %w[/accounts/1 /accounts/10]
       )
     end
   end
@@ -172,7 +168,7 @@ RSpec.describe Petail::Payload do
   describe "#to_json" do
     it "answers default JSON" do
       expect(payload.to_json).to eq(<<~JSON.strip)
-        {"type":"https://test.io/problem_details/out_of_credit","title":"You do not have enough credit.","status":403,"detail":"Your current balance is 30, but that costs 50.","instance":"/accounts/1","extensions":{"balance":30,"accounts":["/accounts/1","/accounts/10"]}}
+        {"type":"https://test.io/problem_details/out_of_credit","title":"You do not have enough credit.","status":403,"detail":"Your current balance is 30, but that costs 50.","instance":"/accounts/1","balance":30,"accounts":["/accounts/1","/accounts/10"]}
       JSON
     end
 
@@ -186,13 +182,11 @@ RSpec.describe Petail::Payload do
           "status": 403,
           "detail": "Your current balance is 30, but that costs 50.",
           "instance": "/accounts/1",
-          "extensions": {
-            "balance": 30,
-            "accounts": [
-              "/accounts/1",
-              "/accounts/10"
-            ]
-          }
+          "balance": 30,
+          "accounts": [
+            "/accounts/1",
+            "/accounts/10"
+          ]
         }
       JSON
     end

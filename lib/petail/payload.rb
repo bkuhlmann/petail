@@ -16,7 +16,12 @@ module Petail
       new title:, status:, **attributes
     end
 
-    def self.from_json(body) = self.for(**JSON(body, symbolize_names: true))
+    def self.from_json body
+      attributes = JSON body, symbolize_names: true
+      extensions = attributes.reject { |key| PRIMARY_KEYS.include? key }
+
+      self.for(**attributes.slice(*PRIMARY_KEYS), extensions:)
+    end
 
     # :reek:TooManyStatements
     def self.from_xml body, deserializer: XML::Deserializer
@@ -50,11 +55,12 @@ module Petail
 
     def extension?(name) = extensions.key? name
 
-    def to_h = super.compact.tap { it.delete :extensions if extensions.empty? }
+    def to_h = {type:, title:, status:, detail:, instance:, **extensions}.compact
 
     def to_json(*) = to_h.to_json(*)
 
     # :reek:TooManyStatements
+    # :reek:FeatureEnvy
     def to_xml(serializer: XML::Serializer, **options)
       document = REXML::Document.new
       document.add REXML::XMLDecl.new("1.0", "UTF-8")
@@ -62,9 +68,7 @@ module Petail
       problem = REXML::Element.new("problem").add_namespace("urn:ietf:rfc:7807")
       document.add problem
 
-      attributes = to_h
-      attributes.merge! attributes.delete :extensions if extensions.any?
-      attributes.each { |name, value| serializer.call name, value, problem }
+      to_h.each { |name, value| serializer.call name, value, problem }
 
       "".dup.tap { document.write(**options, output: it) }
     end

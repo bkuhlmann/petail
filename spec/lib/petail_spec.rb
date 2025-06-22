@@ -40,13 +40,11 @@ RSpec.describe Petail do
           "status": 403,
           "detail": "Your current balance is 30, but that costs 50.",
           "instance": "/accounts/1",
-          "extensions": {
-            "balance": 30,
-            "accounts": [
-              "/accounts/1",
-              "/accounts/10"
-            ]
-          }
+          "balance": 30,
+          "accounts": [
+            "/accounts/1",
+            "/accounts/10"
+          ]
         }
       JSON
     end
