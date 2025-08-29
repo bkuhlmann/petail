@@ -181,7 +181,7 @@ Both serialization and deserialization of JSON is supported. For example, given 
 [source,ruby]
 ----
 payload = Petail[
-  type: "https://test.io/problem_details/out_of_credit",
+  type: "https://demo.io/problem_details/out_of_credit",
   title: "You do not have enough credit.",
   status: 403,
   detail: "Your current balance is 30, but that costs 50.",
@@ -198,11 +198,11 @@ This means you can serialize as follows:
 [source,ruby]
 ----
 payload.to_json
-# "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
+# "{\"type\":\"https://demo.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
 
 payload.to_json indent: "  ", space: " ", object_nl: "\n", array_nl: "\n"
 # {
-#   "type": "https://test.io/problem_details/out_of_credit",
+#   "type": "https://demo.io/problem_details/out_of_credit",
 #   "title": "You do not have enough credit.",
 #   "status": 403,
 #   "detail": "Your current balance is 30, but that costs 50.",
@@ -221,7 +221,7 @@ You can also deserialize by taking the result of the above and turning the raw J
 
 [source,ruby]
 ----
-Petail.from_json "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
+Petail.from_json "{\"type\":\"https://demo.io/problem_details/out_of_credit\",\"title\":\"You do not have enough credit.\",\"status\":403,\"detail\":\"Your current balance is 30, but that costs 50.\",\"instance\":\"/accounts/1\",\"balance\":30,\"accounts\":[\"/accounts/1\",\"/accounts/10\"]}"
 
 # #<Struct:Petail::Payload:0x00007670
 #   detail = "Your current balance is 30, but that costs 50.",
@@ -235,7 +235,7 @@ Petail.from_json "{\"type\":\"https://test.io/problem_details/out_of_credit\",\"
 #   instance = "/accounts/1",
 #   status = 403,
 #   title = "You do not have enough credit.",
-#   type = "https://test.io/problem_details/out_of_credit"
+#   type = "https://demo.io/problem_details/out_of_credit"
 # >
 ----
 
@@ -246,7 +246,7 @@ XML is supported too but isn't as robust as JSON support, at the moment. This is
 [source,ruby]
 ----
 payload = Petail[
-  type: "https://test.io/problem_details/out_of_credit",
+  type: "https://demo.io/problem_details/out_of_credit",
   title: "You do not have enough credit.",
   status: 403,
   detail: "Your current balance is 30, but that costs 50.",
@@ -263,13 +263,13 @@ This means you can serialize as follows:
 [source,ruby]
 ----
 payload.to_xml
-# "<?xml version='1.0' encoding='UTF-8'?><problem xmlns='urn:ietf:rfc:7807'><type>https://test.io/problem_details/out_of_credit</type><title>You do not have enough credit.</title><status>403</status><detail>Your current balance is 30, but that costs 50.</detail><instance>/accounts/1</instance><balance>30</balance><accounts><i>/accounts/1</i><i>/accounts/10</i></accounts></problem>"
+# "<?xml version='1.0' encoding='UTF-8'?><problem xmlns='urn:ietf:rfc:7807'><type>https://demo.io/problem_details/out_of_credit</type><title>You do not have enough credit.</title><status>403</status><detail>Your current balance is 30, but that costs 50.</detail><instance>/accounts/1</instance><balance>30</balance><accounts><i>/accounts/1</i><i>/accounts/10</i></accounts></problem>"
 
 payload.to_xml indent: 2
 # <?xml version='1.0' encoding='UTF-8'?>
 # <problem xmlns='urn:ietf:rfc:7807'>
 #   <type>
-#     https://test.io/problem_details/out_of_credit
+#     https://demo.io/problem_details/out_of_credit
 #   </type>
 #   <title>
 #     You do not have enough credit.
@@ -306,7 +306,7 @@ You can also deserialize by taking the result of the above and turning the raw J
 payload = Petail.from_xml <<~XML
   <?xml version='1.0' encoding='UTF-8'?>
   <problem xmlns='urn:ietf:rfc:7807'>
-    <type>https://test.io/problem_details/out_of_credit</type>
+    <type>https://demo.io/problem_details/out_of_credit</type>
     <title>You do not have enough credit.</title>
     <status>403</status>
     <detail>Your current balance is 30, but that costs 50.</detail>
@@ -331,9 +331,74 @@ XML
 #   instance = "/accounts/1",
 #   status = 403,
 #   title = "You do not have enough credit.",
-#   type = "https://test.io/problem_details/out_of_credit"
+#   type = "https://demo.io/problem_details/out_of_credit"
 # >
 ----
+
+=== Examples
+
+There is a lot of useful information you can provide in your problem details depending on the context you are working in. Some have been shown above but here's a few more that might be of interest.
+
+==== HATEOAS
+
+With link:https://nordicapis.com/tools-to-make-hateoas-compliance-easier[HATEOAS], you can provide additional information and links for which the client can understand what next actions are available. The below example shows how you can provide additional resources for clients to adjust accordingly:
+
+[source,ruby]
+----
+Petail[
+  type: "https://demo.io/problem_details/rate_limit",
+  title: "Rate limit exceeded",
+  status: 429,
+  detail: "You have exceeded your rate limit of 150 requests per minute",
+  instance: "/articles",
+  extensions: {
+    retry_after: 5,
+    links: [
+      {
+        ref: "self",
+        href: "/articles"
+      },
+      {
+        rel: "retry",
+        href: "/articles",
+        title: "Retry after five minutes"
+      },
+      {
+        rel: "status",
+        href: "/statuses/rate_limit",
+        title: "Check current rate limit usage"
+      }
+    ]
+  }
+]
+----
+
+==== Semantic Structure
+
+In other situations, you might need a different structure in order to aid clients that might be AI driven which needs a semantically structured response in order to course correct. Example:
+
+[source,ruby]
+----
+Petail[
+  type: "https://demo.io/problem_details/invalid_field",
+  title: "Invalid field value",
+  status: 400,
+  detail: "The category requested doesn't exist",
+  instance: "/categories",
+  extensions: {
+    parameters: {
+      category_id: 123
+    },
+    suggestions: [
+      "ruby",
+      "git",
+      "htmx"
+    ]
+  }
+]
+----
+
+With the above, the client now knows what parameters where invalid along with relevant suggestions for proceeding. Even better, the suggestions implicitly show the types of IDs that are required.
 
 == Development
 
