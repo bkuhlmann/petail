@@ -9,7 +9,7 @@ module Petail
 
   # Models the problem details response payload.
   Payload = Struct.new(*PRIMARY_KEYS, :extensions) do
-    def self.for(**attributes)
+    def self.for **attributes
       status = attributes.delete(:status).then { Rack::Utils.status_code it if it }
       title = attributes.delete(:title).then { it || Rack::Utils::HTTP_STATUS_CODES[status] }
 
@@ -61,7 +61,7 @@ module Petail
 
     # :reek:TooManyStatements
     # :reek:FeatureEnvy
-    def to_xml(serializer: XML::Serializer, **options)
+    def to_xml serializer: XML::Serializer, **options
       document = REXML::Document.new
       document.add REXML::XMLDecl.new("1.0", "UTF-8")
 
